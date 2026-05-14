@@ -5,30 +5,34 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Dashboard Iluminação Pública 2026</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
 :root{--bg:#090d18;--surface:#101624;--card:#141d2c;--border:#1c2a40;--border2:#243450;--teal:#00d4c8;--amber:#f59e0b;--red:#ef4444;--green:#22c55e;--blue:#3b82f6;--purple:#a855f7;--text:#dde6f0;--muted:#4e6278;--label:#7e99b4;--soft:#a8bed4}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+/* ─ UPLOAD ─ */
 #upload-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;background:radial-gradient(ellipse at 50% 0%,#0d1f3a 0%,var(--bg) 65%)}
 .up-eye{font-family:'Barlow Condensed',sans-serif;font-size:.85rem;font-weight:700;letter-spacing:.35em;color:var(--muted);text-transform:uppercase;margin-bottom:28px}
 .up-eye span{color:var(--teal)}
 .up-title{font-family:'Barlow Condensed',sans-serif;font-size:3.4rem;font-weight:900;color:#fff;text-align:center;line-height:.95;margin-bottom:14px}
 .up-title em{font-style:normal;color:var(--teal)}
 .up-sub{color:var(--muted);font-size:.88rem;text-align:center;max-width:460px;line-height:1.6;margin-bottom:40px}
-.dz{width:500px;max-width:100%;border:2px dashed var(--border2);border-radius:18px;padding:52px 40px;text-align:center;cursor:pointer;transition:all .35s;background:var(--card);position:relative}
+/* Drop zone — SEM input dentro, clique gerenciado via JS */
+.dz{width:500px;max-width:100%;border:2px dashed var(--border2);border-radius:18px;padding:52px 40px;text-align:center;cursor:pointer;transition:all .35s;background:var(--card);user-select:none}
 .dz:hover,.dz.drag{border-color:var(--teal);background:rgba(0,212,200,.04)}
-.dz input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.dz-icon{font-size:2.8rem;margin-bottom:14px;display:block}
-.dz-big{font-family:'Barlow Condensed',sans-serif;font-size:1.35rem;font-weight:700;color:var(--soft)}
-.dz-small{font-size:.78rem;color:var(--muted);margin-top:6px}
-.dz-badge{display:inline-flex;align-items:center;gap:6px;margin-top:18px;padding:5px 14px;border-radius:20px;background:rgba(0,212,200,.08);border:1px solid rgba(0,212,200,.2);color:var(--teal);font-size:.72rem;font-weight:700;letter-spacing:.08em}
-.up-actions{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap;justify-content:center}
+.dz-icon{font-size:2.8rem;margin-bottom:14px;display:block;pointer-events:none}
+.dz-big{font-family:'Barlow Condensed',sans-serif;font-size:1.35rem;font-weight:700;color:var(--soft);pointer-events:none}
+.dz-small{font-size:.78rem;color:var(--muted);margin-top:6px;pointer-events:none}
+.dz-badge{display:inline-flex;align-items:center;gap:6px;margin-top:18px;padding:5px 14px;border-radius:20px;background:rgba(0,212,200,.08);border:1px solid rgba(0,212,200,.2);color:var(--teal);font-size:.72rem;font-weight:700;letter-spacing:.08em;pointer-events:none}
+/* Input de arquivo oculto FORA da dropzone */
+#file-input{display:none}
+#err-box{display:none;margin-top:16px;padding:12px 18px;border-radius:8px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:var(--red);font-size:.8rem;text-align:center;max-width:500px}
+.up-actions{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap;justify-content:center;position:relative;z-index:10}
 .btn-sec{padding:10px 22px;border-radius:8px;cursor:pointer;background:transparent;border:1px solid var(--border2);color:var(--label);font-family:'Barlow',sans-serif;font-size:.85rem;transition:all .25s}
 .btn-sec:hover{border-color:var(--teal);color:var(--teal)}
 .btn-pri{padding:10px 22px;border-radius:8px;cursor:pointer;background:rgba(0,212,200,.1);border:1px solid rgba(0,212,200,.3);color:var(--teal);font-family:'Barlow',sans-serif;font-size:.85rem;font-weight:600;transition:all .25s;text-decoration:none;display:inline-block}
 .btn-pri:hover{background:rgba(0,212,200,.18)}
-#err-box{display:none;margin-top:16px;padding:12px 18px;border-radius:8px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:var(--red);font-size:.8rem;text-align:center;max-width:500px}
+/* ─ DASHBOARD ─ */
 #dash{display:none;padding:22px 24px;min-height:100vh}
 .topbar{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--border);padding-bottom:15px;margin-bottom:18px;flex-wrap:wrap;gap:12px}
 .tb-brand{font-family:'Barlow Condensed',sans-serif;font-size:1.65rem;font-weight:900;color:#fff;line-height:1;letter-spacing:.04em}
@@ -117,24 +121,33 @@ canvas#evc{width:100%;height:200px;display:block}
 </style>
 </head>
 <body>
+
+<!-- Input de arquivo FORA de qualquer container clicável -->
+<input type="file" id="file-input" accept=".xlsx,.xls" style="display:none"/>
+
 <div id="loading"><div class="spin"></div><p style="color:var(--muted);font-size:.82rem">Lendo planilha…</p></div>
+
 <div id="upload-screen">
   <div class="up-eye">Gestão de <span>Iluminação Pública</span> · SLAs Contratuais</div>
   <h1 class="up-title">DASHBOARD<br><em>2026</em></h1>
   <p class="up-sub">Importe a planilha para visualizar os 5 SLAs contratuais com filtro por mês e evolução anual.</p>
+
+  <!-- Drop zone: clique abre o file input via JS, sem input embutido -->
   <div class="dz" id="dz">
-    <input type="file" id="fi" accept=".xlsx,.xls"/>
     <span class="dz-icon">📊</span>
     <div class="dz-big">Arraste a planilha aqui</div>
     <div class="dz-small">ou clique para selecionar o arquivo</div>
     <div class="dz-badge">✦ XLSX · Template Padrão 2026</div>
   </div>
+
   <div id="err-box"></div>
+
   <div class="up-actions">
     <button class="btn-sec" id="demobtn" type="button">▶ Ver demonstração (abr/26)</button>
     <a class="btn-pri" href="template_dashboard_ip_2026.xlsx" download>⬇ Baixar Template Excel</a>
   </div>
 </div>
+
 <div id="dash">
   <div class="topbar">
     <div>
@@ -240,16 +253,20 @@ canvas#evc{width:100%;height:200px;display:block}
     <p>Dashboard · Iluminação Pública · 2026</p>
   </div>
 </div>
+
 <script>
+// ══ DADOS ══
 const AM=["jan/26","fev/26","mar/26","abr/26","mai/26","jun/26","jul/26","ago/26","set/26","out/26","nov/26","dez/26"];
-let DB={},CUR=null;
+let DB={}, CUR=null;
 const DEMO={"abr/26":{mes:"abr/26",CMM:427136.76,FM:0.50,Nf:221,Ni:0,Pt:15879,NCEi:2,NCEa:2,NCNEi:15,NCNEa:15,Dm:30,Ti:0,pOtimo:64,pBom:36,pReg:0,pRuim:0,lig:26,nOp:2}};
+
+// ══ SCORING ══
 const s14=p=>p>=.9901?1:p>=.9801?.9:p>=.9701?.8:p>=.9601?.7:0;
 const s23=p=>p>=.9376?1:p>=.8751?.9:p>=.8126?.8:p>=.7501?.7:0;
 const s5=(o,b)=>{const v=(o+b)/100;return v>=.9?1:v>=.7?.9:0};
 function calc(d){
-  const PPA=1-(d.Nf-d.Ni)/d.Pt,PCE=d.NCEi>0?d.NCEa/d.NCEi:1,
-        PCNE=d.NCNEi>0?d.NCNEa/d.NCNEi:1,TOS=(1440*d.Dm-d.Ti)/(1440*d.Dm);
+  const PPA=1-(d.Nf-d.Ni)/d.Pt, PCE=d.NCEi>0?d.NCEa/d.NCEi:1,
+        PCNE=d.NCNEi>0?d.NCNEa/d.NCNEi:1, TOS=(1440*d.Dm-d.Ti)/(1440*d.Dm);
   const c1=s14(PPA),c2=s23(PCE),c3=s23(PCNE),c4=s14(TOS),c5=s5(d.pOtimo,d.pBom);
   const IE=c1*.4+c2*.2+c3*.2+c4*.1+c5*.1;
   return{PPA,PCE,PCNE,TOS,c1,c2,c3,c4,c5,IE,CME:d.CMM*d.FM*IE};
@@ -259,8 +276,9 @@ const Pct=v=>(v*100).toFixed(2)+'%';const Sc=v=>v.toFixed(2);
 const cls=v=>v>=1?'ok':v>=.7?'warn':'fail';
 const lbx=v=>v>=1?'CONFORME':v>=.7?'PARCIAL':'FALHA';
 
+// ══ PARSER EXCEL ══
 function parseXlsx(ab){
-  if(typeof XLSX==='undefined') throw new Error("Biblioteca XLSX não carregou. Verifique a conexão e recarregue.");
+  if(typeof XLSX==='undefined') throw new Error("Biblioteca de leitura não carregou. Recarregue a página (F5).");
   const wb=XLSX.read(ab,{type:'arraybuffer'});
   const sn=wb.SheetNames.find(s=>s.toUpperCase().includes('DADOS'))||wb.SheetNames[0];
   const rows=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,defval:""});
@@ -269,7 +287,7 @@ function parseXlsx(ab){
   for(let i=0;i<Math.min(rows.length,15);i++){
     if(mesPat.test(String(rows[i][0]||'').trim())){dataStart=i;break;}
   }
-  if(dataStart<0) throw new Error("Não encontrei dados de mês. Formato esperado: jan/26, fev/26... Verifique o template.");
+  if(dataStart<0) throw new Error("Não encontrei dados de mês. Formato esperado: jan/26, fev/26... Use o template fornecido.");
   const KEYS={mes:['mês','mes'],CMM:['cmm'],FM:['fm','fator'],Nf:['nf','falhas g'],Ni:['ni','interv'],
     Pt:['pt','disposit'],NCEi:['ncei','emerg. id','emerg id'],NCEa:['ncea','emerg. at','emerg at'],
     NCNEi:['ncnei','n.em. id','n.emerg. id','não emerg'],NCNEa:['ncnea','n.em. at','n.emerg. at'],
@@ -279,11 +297,9 @@ function parseXlsx(ab){
   const found={};
   for(let ri=0;ri<dataStart;ri++){
     const row=rows[ri].map(c=>String(c||'').toLowerCase().replace(/\n/g,' ').trim());
-    for(const[field,needles]of Object.entries(KEYS)){
-      if(found[field]!==undefined)continue;
-      for(let ci=0;ci<row.length;ci++){
-        if(needles.some(n=>row[ci].includes(n))){found[field]=ci;break;}
-      }
+    for(const[f,ns]of Object.entries(KEYS)){
+      if(found[f]!==undefined)continue;
+      for(let ci=0;ci<row.length;ci++){if(ns.some(n=>row[ci].includes(n))){found[f]=ci;break;}}
     }
   }
   if(found.mes===undefined)found.mes=0;
@@ -299,10 +315,11 @@ function parseXlsx(ab){
       lig:num(row,found.lig),nOp:num(row,found.nOp)};
     if(d.CMM>0||d.Nf>0||d.NCEi>0||d.NCNEi>0||d.pOtimo>0)result[mes]=d;
   }
-  if(!Object.keys(result).length) throw new Error("Planilha lida, mas sem dados preenchidos. Preencha pelo menos um mês com os campos azuis.");
+  if(!Object.keys(result).length) throw new Error("Planilha lida com sucesso, mas sem dados preenchidos. Preencha pelo menos um mês com os campos azuis.");
   return result;
 }
 
+// ══ GRÁFICO ══
 function drawEv(){
   const canvas=document.getElementById('evc');
   const W=canvas.offsetWidth||700,H=200;canvas.width=W;canvas.height=H;
@@ -330,11 +347,12 @@ function drawEv(){
     ctx.fillStyle='#7e99b4';ctx.font='9px Barlow Condensed,sans-serif';ctx.textAlign='center';ctx.fillText(v.toFixed(2),px(i),py(v)-9);});
 }
 
+// ══ RENDER ══
 function render(mes){
   CUR=mes;const d=DB[mes];
   document.getElementById('mbar').innerHTML=AM.map(m=>{
     const has=!!DB[m],act=m===mes;
-    return`<button class="mtab${act?' active':''}${has?'':' empty'}${has&&!act?' has':''}" ${has?`onclick="render('${m}')"`:''} ${has?'':'disabled'}>${m}</button>`;
+    return'<button class="mtab'+(act?' active':'')+(has?'':' empty')+(has&&!act?' has':'')+'" '+(has?'onclick="render(\''+m+'\')"':'disabled')+'>'+m+'</button>';
   }).join('<div class="msep"></div>');
   if(!d)return;
   const c=calc(d);
@@ -344,64 +362,50 @@ function render(mes){
   document.getElementById('v-fm').textContent=d.FM.toFixed(2);
   document.getElementById('v-ief').textContent=c.IE.toFixed(3);
   document.getElementById('v-ie').textContent=c.IE.toFixed(3);
-  document.getElementById('v-iel').textContent=`Meta: 1,000 · Atingido: ${(c.IE*100).toFixed(1)}%`;
+  document.getElementById('v-iel').textContent='Meta: 1,000 · Atingido: '+(c.IE*100).toFixed(1)+'%';
   document.getElementById('v-desc').textContent='−'+R$(d.CMM*d.FM-c.CME);
   const ep=document.getElementById('v-efp');ep.textContent=(c.IE*100).toFixed(1)+'%';
   ep.style.color=c.IE>=.9?'var(--green)':c.IE>=.6?'var(--amber)':'var(--red)';
-  const ang=-90+c.IE*180,rad=ang*Math.PI/180;
-  const nd=document.getElementById('gneedle');
+  const ang=-90+c.IE*180,rad=ang*Math.PI/180,nd=document.getElementById('gneedle');
   if(nd){nd.setAttribute('x2',(80+Math.cos(rad)*61).toFixed(1));nd.setAttribute('y2',(79+Math.sin(rad)*61).toFixed(1));}
   const als=[];
-  if(c.c1<1)als.push({col:'var(--red)',s:'SLA 1 — Pontos Acesos',t:`PPA=${Pct(c.PPA)} · Nf=${d.Nf}`});
-  if(c.c4<1)als.push({col:'var(--amber)',s:'SLA 4 — Sistema',t:`TOS=${Pct(c.TOS)} · Ti=${d.Ti}min`});
-  als.push(c.IE>=.9?{col:'var(--green)',s:'IE Ótimo',t:`IE=${c.IE.toFixed(3)} · CME=${R$(c.CME)}`}:{col:c.IE>=.6?'var(--amber)':'var(--red)',s:`IE ${c.IE>=.6?'em Alerta':'Crítico'}`,t:`Desconto: ${R$(d.CMM*d.FM-c.CME)}`});
-  if(d.pOtimo+d.pBom>=100)als.push({col:'var(--green)',s:'Satisfação 100% positiva',t:`${d.pOtimo}% Ótimo · ${d.pBom}% Bom`});
-  document.getElementById('astrip').innerHTML=als.map(a=>`<div class="aitem"><div class="adot" style="background:${a.col}"></div><div class="atext"><strong>${a.s}</strong><span>${a.t}</span></div></div>`).join('');
+  if(c.c1<1)als.push({col:'var(--red)',s:'SLA 1 — Pontos Acesos',t:'PPA='+Pct(c.PPA)+' · Nf='+d.Nf});
+  if(c.c4<1)als.push({col:'var(--amber)',s:'SLA 4 — Sistema',t:'TOS='+Pct(c.TOS)+' · Ti='+d.Ti+'min'});
+  als.push(c.IE>=.9?{col:'var(--green)',s:'IE Ótimo',t:'IE='+c.IE.toFixed(3)+' · CME='+R$(c.CME)}:{col:c.IE>=.6?'var(--amber)':'var(--red)',s:'IE '+(c.IE>=.6?'em Alerta':'Crítico'),t:'Desconto: '+R$(d.CMM*d.FM-c.CME)});
+  if(d.pOtimo+d.pBom>=100)als.push({col:'var(--green)',s:'Satisfação 100% positiva',t:d.pOtimo+'% Ótimo · '+d.pBom+'% Bom'});
+  document.getElementById('astrip').innerHTML=als.map(a=>'<div class="aitem"><div class="adot" style="background:'+a.col+'"></div><div class="atext"><strong>'+a.s+'</strong><span>'+a.t+'</span></div></div>').join('');
   const slas=[
-    {n:1,t:'Pontos IP Acesos',s:c.c1,p:c.PPA,lb:'PPA',dt:`Nf=${d.Nf}·Ni=${d.Ni}·Pt=${d.Pt.toLocaleString('pt-BR')}`,ps:'40%',ct:c.c1*.4,bc:'cr',col:'var(--red)'},
-    {n:2,t:'Chamados Emerg.',s:c.c2,p:c.PCE,lb:'PCE',dt:`NCEi=${d.NCEi}·NCEa=${d.NCEa}`,ps:'20%',ct:c.c2*.2,bc:'cg',col:'var(--green)'},
-    {n:3,t:'Chamados N.Emerg.',s:c.c3,p:c.PCNE,lb:'PCNE',dt:`NCNEi=${d.NCNEi}·NCNEa=${d.NCNEa}`,ps:'20%',ct:c.c3*.2,bc:'cg',col:'var(--green)'},
-    {n:4,t:'Disponib. Sistema',s:c.c4,p:c.TOS,lb:'TOS',dt:`Dm=${d.Dm}d·Ti=${d.Ti}min`,ps:'10%',ct:c.c4*.1,bc:'cb',col:'var(--blue)'},
-    {n:5,t:'Pesquisa Satisf.',s:c.c5,p:(d.pOtimo+d.pBom)/100,lb:'POS',dt:`${d.lig}lig·Exati`,ps:'10%',ct:c.c5*.1,bc:'cp',col:'var(--purple)'},
+    {n:1,t:'Pontos IP Acesos',s:c.c1,p:c.PPA,lb:'PPA',dt:'Nf='+d.Nf+'·Ni='+d.Ni+'·Pt='+d.Pt.toLocaleString('pt-BR'),ps:'40%',ct:c.c1*.4,bc:'cr',col:'var(--red)'},
+    {n:2,t:'Chamados Emerg.',s:c.c2,p:c.PCE,lb:'PCE',dt:'NCEi='+d.NCEi+'·NCEa='+d.NCEa,ps:'20%',ct:c.c2*.2,bc:'cg',col:'var(--green)'},
+    {n:3,t:'Chamados N.Emerg.',s:c.c3,p:c.PCNE,lb:'PCNE',dt:'NCNEi='+d.NCNEi+'·NCNEa='+d.NCNEa,ps:'20%',ct:c.c3*.2,bc:'cg',col:'var(--green)'},
+    {n:4,t:'Disponib. Sistema',s:c.c4,p:c.TOS,lb:'TOS',dt:'Dm='+d.Dm+'d·Ti='+d.Ti+'min',ps:'10%',ct:c.c4*.1,bc:'cb',col:'var(--blue)'},
+    {n:5,t:'Pesquisa Satisf.',s:c.c5,p:(d.pOtimo+d.pBom)/100,lb:'POS',dt:d.lig+'lig·Exati',ps:'10%',ct:c.c5*.1,bc:'cp',col:'var(--purple)'},
   ];
   document.getElementById('slagrid').innerHTML=slas.map(sl=>{const sc=cls(sl.s),lb=lbx(sl.s);
-    return`<div class="card ${sl.bc}" style="padding:13px;display:flex;flex-direction:column;gap:5px">
-      <span class="sbadge ${sc}">${lb}</span><div class="stit">SLA ${sl.n} · ${sl.t}</div>
-      <div class="sc ${sc}">${Sc(sl.s)}</div><div class="spct">${sl.lb}: <span>${Pct(sl.p)}</span></div>
-      <div class="sbg"><div class="sfill" style="width:${Math.min(sl.p*100,100).toFixed(1)}%;background:${sl.col}"></div></div>
-      <div class="sdet">${sl.dt}</div>
-      <div class="speso">⚖ Peso:<strong>${sl.ps}</strong> Contrib:<strong style="color:${sl.ct>0?sl.col:'var(--muted)'}">${sl.ct.toFixed(3)}</strong></div></div>`;
+    return'<div class="card '+sl.bc+'" style="padding:13px;display:flex;flex-direction:column;gap:5px"><span class="sbadge '+sc+'">'+lb+'</span><div class="stit">SLA '+sl.n+' · '+sl.t+'</div><div class="sc '+sc+'">'+Sc(sl.s)+'</div><div class="spct">'+sl.lb+': <span>'+Pct(sl.p)+'</span></div><div class="sbg"><div class="sfill" style="width:'+Math.min(sl.p*100,100).toFixed(1)+'%;background:'+sl.col+'"></div></div><div class="sdet">'+sl.dt+'</div><div class="speso">⚖ Peso:<strong>'+sl.ps+'</strong> Contrib:<strong style="color:'+(sl.ct>0?sl.col:'var(--muted)')+'">'+sl.ct.toFixed(3)+'</strong></div></div>';
   }).join('');
-  const ii=[{l:'SLA 1',s:c.c1,p:'40%',ct:c.c1*.4,cl:'var(--red)'},{l:'SLA 2',s:c.c2,p:'20%',ct:c.c2*.2,cl:'var(--green)'},
-    {l:'SLA 3',s:c.c3,p:'20%',ct:c.c3*.2,cl:'var(--green)'},{l:'SLA 4',s:c.c4,p:'10%',ct:c.c4*.1,cl:'var(--blue)'},{l:'SLA 5',s:c.c5,p:'10%',ct:c.c5*.1,cl:'var(--purple)'}];
-  document.getElementById('iebk').innerHTML=ii.map(x=>`<div class="ierow"><div class="ienm">${x.l}</div>
-    <div class="iebar"><div class="iefill" style="width:${x.s*100}%;background:${x.cl}"></div></div>
-    <div class="iepeso">${x.p}</div><div class="iecont" style="color:${x.ct>0?x.cl:'var(--muted)'}">${x.ct.toFixed(3)}</div></div>`).join('')+
-    `<div class="ietot"><div style="font-size:.7rem;color:var(--muted)">TOTAL IE</div>
-    <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.45rem;font-weight:800;color:${c.IE>=.9?'var(--green)':c.IE>=.6?'var(--amber)':'var(--red)'}">${c.IE.toFixed(3)}</div></div>
-    <div style="font-size:.62rem;color:var(--muted);margin-top:4px">Potencial perdido:<span style="color:var(--red)">${(1-c.IE).toFixed(3)}</span></div>`;
+  const ii=[{l:'SLA 1',s:c.c1,p:'40%',ct:c.c1*.4,cl:'var(--red)'},{l:'SLA 2',s:c.c2,p:'20%',ct:c.c2*.2,cl:'var(--green)'},{l:'SLA 3',s:c.c3,p:'20%',ct:c.c3*.2,cl:'var(--green)'},{l:'SLA 4',s:c.c4,p:'10%',ct:c.c4*.1,cl:'var(--blue)'},{l:'SLA 5',s:c.c5,p:'10%',ct:c.c5*.1,cl:'var(--purple)'}];
+  document.getElementById('iebk').innerHTML=ii.map(x=>'<div class="ierow"><div class="ienm">'+x.l+'</div><div class="iebar"><div class="iefill" style="width:'+x.s*100+'%;background:'+x.cl+'"></div></div><div class="iepeso">'+x.p+'</div><div class="iecont" style="color:'+(x.ct>0?x.cl:'var(--muted)')+'">'+x.ct.toFixed(3)+'</div></div>').join('')+'<div class="ietot"><div style="font-size:.7rem;color:var(--muted)">TOTAL IE</div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:1.45rem;font-weight:800;color:'+(c.IE>=.9?'var(--green)':c.IE>=.6?'var(--amber)':'var(--red)')+'">'+c.IE.toFixed(3)+'</div></div><div style="font-size:.62rem;color:var(--muted);margin-top:4px">Potencial perdido:<span style="color:var(--red)">'+(1-c.IE).toFixed(3)+'</span></div>';
   const CIRC=276.46,oA=(d.pOtimo/100)*CIRC,bA=(d.pBom/100)*CIRC,rA=(d.pReg/100)*CIRC;
-  const sa=(id,da,off)=>{const el=document.getElementById(id);if(el){el.setAttribute('stroke-dasharray',`${da} ${CIRC}`);el.setAttribute('stroke-dashoffset',off);}};
+  const sa=(id,da,off)=>{const el=document.getElementById(id);if(el){el.setAttribute('stroke-dasharray',da+' '+CIRC);el.setAttribute('stroke-dashoffset',off);}};
   sa('sc-ot',oA,0);sa('sc-bm',bA,-oA);sa('sc-rg',rA,-(oA+bA));
   document.getElementById('sc-tot').textContent=d.lig||'—';
   document.getElementById('sp-ot').textContent=d.pOtimo.toFixed(0)+'%';
   document.getElementById('sp-bm').textContent=d.pBom.toFixed(0)+'%';
   document.getElementById('sp-rg').textContent=d.pReg.toFixed(0)+'%';
   document.getElementById('sp-ru').textContent=d.pRuim.toFixed(0)+'%';
-  document.getElementById('sp-no').textContent=`Não opinou: ${d.nOp}`;
+  document.getElementById('sp-no').textContent='Não opinou: '+d.nOp;
   const tc=v=>v>=1?'tok':v>=.75?'twarn':'tfail';
-  document.getElementById('ostb').innerHTML=`
-    <tr><td>Emergência</td><td>${d.NCEi}</td><td>${d.NCEa}</td><td><span class="tag ${tc(c.PCE)}">${Pct(c.PCE)}</span></td></tr>
-    <tr><td>Não Emerg.</td><td>${d.NCNEi}</td><td>${d.NCNEa}</td><td><span class="tag ${tc(c.PCNE)}">${Pct(c.PCNE)}</span></td></tr>
-    <tr><td><strong>Total</strong></td><td><strong>${d.NCEi+d.NCNEi}</strong></td><td><strong>${d.NCEa+d.NCNEa}</strong></td>
-      <td><span class="tag ${tc((d.NCEa+d.NCNEa)/Math.max(d.NCEi+d.NCNEi,1))}">${Pct((d.NCEa+d.NCNEa)/Math.max(d.NCEi+d.NCNEi,1))}</span></td></tr>`;
+  document.getElementById('ostb').innerHTML='<tr><td>Emergência</td><td>'+d.NCEi+'</td><td>'+d.NCEa+'</td><td><span class="tag '+tc(c.PCE)+'">'+Pct(c.PCE)+'</span></td></tr><tr><td>Não Emerg.</td><td>'+d.NCNEi+'</td><td>'+d.NCNEa+'</td><td><span class="tag '+tc(c.PCNE)+'">'+Pct(c.PCNE)+'</span></td></tr><tr><td><strong>Total</strong></td><td><strong>'+(d.NCEi+d.NCNEi)+'</strong></td><td><strong>'+(d.NCEa+d.NCNEa)+'</strong></td><td><span class="tag '+tc((d.NCEa+d.NCNEa)/Math.max(d.NCEi+d.NCNEi,1))+'">'+Pct((d.NCEa+d.NCNEa)/Math.max(d.NCEi+d.NCNEi,1))+'</span></td></tr>';
   document.getElementById('v-nf').textContent=d.Nf.toLocaleString('pt-BR');
   document.getElementById('v-ni').textContent=d.Ni.toLocaleString('pt-BR');
   document.getElementById('v-pt').textContent=d.Pt.toLocaleString('pt-BR');
-  document.getElementById('ft-src').textContent=`Mês: ${d.mes} · Planilha importada · Exati (SLA5)`;
-  document.getElementById('ft-v').textContent=`CME=${R$(c.CME)} · IE=${c.IE.toFixed(3)} · FM=${d.FM.toFixed(2)} · CMM=${R$(d.CMM)}`;
+  document.getElementById('ft-src').textContent='Mês: '+d.mes+' · Planilha importada · Exati (SLA5)';
+  document.getElementById('ft-v').textContent='CME='+R$(c.CME)+' · IE='+c.IE.toFixed(3)+' · FM='+d.FM.toFixed(2)+' · CMM='+R$(d.CMM);
   setTimeout(drawEv,60);
 }
+
+// ══ CARREGAR ══
 function go(data){
   DB=data;
   document.getElementById('upload-screen').style.display='none';
@@ -409,31 +413,54 @@ function go(data){
   render(AM.find(m=>DB[m])||Object.keys(DB)[0]);
 }
 function showErr(msg){const el=document.getElementById('err-box');el.innerHTML=msg;el.style.display='block';}
+function hideErr(){document.getElementById('err-box').style.display='none';}
+
 function handleFile(file){
   if(!file)return;
   if(!['xlsx','xls'].includes(file.name.split('.').pop().toLowerCase())){showErr('⚠ Selecione um arquivo .xlsx');return;}
-  document.getElementById('err-box').style.display='none';
+  hideErr();
   document.getElementById('loading').style.display='flex';
   const r=new FileReader();
-  r.onload=e=>{document.getElementById('loading').style.display='none';try{go(parseXlsx(e.target.result));}catch(ex){showErr('⚠ '+ex.message);}};
-  r.onerror=()=>{document.getElementById('loading').style.display='none';showErr('⚠ Erro ao ler arquivo.');};
+  r.onload=function(e){
+    document.getElementById('loading').style.display='none';
+    try{go(parseXlsx(e.target.result));}
+    catch(ex){showErr('⚠ '+ex.message);}
+  };
+  r.onerror=function(){document.getElementById('loading').style.display='none';showErr('⚠ Erro ao ler arquivo.');};
   r.readAsArrayBuffer(file);
 }
-document.getElementById('fi').addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]);});
-const dz=document.getElementById('dz');
-dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag');});
-dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
-dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);});
-document.getElementById('demobtn').addEventListener('click',function(){
-  document.getElementById('err-box').style.display='none';
-  go(JSON.parse(JSON.stringify(DEMO)));
+
+// ══ EVENTOS ══
+// Drop zone: clique abre o file picker via JS (sem input embutido)
+var dz=document.getElementById('dz');
+dz.addEventListener('click',function(){document.getElementById('file-input').click();});
+dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('drag');});
+dz.addEventListener('dragleave',function(){dz.classList.remove('drag');});
+dz.addEventListener('drop',function(e){
+  e.preventDefault();dz.classList.remove('drag');
+  if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);
 });
+
+// File input externo
+document.getElementById('file-input').addEventListener('change',function(e){
+  if(e.target.files[0])handleFile(e.target.files[0]);
+  this.value='';// reset para permitir selecionar o mesmo arquivo novamente
+});
+
+// Botão demo — completamente separado do drop zone
+document.getElementById('demobtn').addEventListener('click',function(e){
+  e.preventDefault();e.stopPropagation();
+  hideErr();
+  go({abr26:{mes:"abr/26",CMM:427136.76,FM:0.50,Nf:221,Ni:0,Pt:15879,NCEi:2,NCEa:2,NCNEi:15,NCNEa:15,Dm:30,Ti:0,pOtimo:64,pBom:36,pReg:0,pRuim:0,lig:26,nOp:2},"abr/26":{mes:"abr/26",CMM:427136.76,FM:0.50,Nf:221,Ni:0,Pt:15879,NCEi:2,NCEa:2,NCNEi:15,NCNEa:15,Dm:30,Ti:0,pOtimo:64,pBom:36,pReg:0,pRuim:0,lig:26,nOp:2}});
+});
+
 document.getElementById('upnew').addEventListener('click',function(){
   document.getElementById('dash').style.display='none';
   document.getElementById('upload-screen').style.display='flex';
-  document.getElementById('err-box').style.display='none';
+  hideErr();
 });
-window.addEventListener('resize',()=>{if(CUR)setTimeout(drawEv,60);});
+
+window.addEventListener('resize',function(){if(CUR)setTimeout(drawEv,60);});
 </script>
 </body>
 </html>
