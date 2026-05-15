@@ -274,17 +274,32 @@ const s14=p=>p>=.9901?1:p>=.9801?.9:p>=.9701?.8:p>=.9601?.7:0;
 const s23=p=>p>=.9376?1:p>=.8751?.9:p>=.8126?.8:p>=.7501?.7:0;
 const s5=(o,b)=>{const v=(o+b)/100;return v>=.9?1:v>=.7?.9:0};
 function calc(d){
-  const PPA  = d.Pt > 0 ? 1-(d.Nf-d.Ni)/d.Pt : 1;
-  // SLA2 e SLA3: se não houve nenhum chamado (0 identificados E 0 atendidos)
-  // o indicador é considerado ATENDIDO (100%). Só penaliza se houve chamado não atendido.
-  const PCE  = (d.NCEi === 0 && d.NCEa === 0) ? 1
-               : d.NCEi > 0 ? d.NCEa / d.NCEi : 1;
-  const PCNE = (d.NCNEi === 0 && d.NCNEa === 0) ? 1
-               : d.NCNEi > 0 ? d.NCNEa / d.NCNEi : 1;
-  const TOS  = d.Dm > 0 ? (1440*d.Dm-d.Ti)/(1440*d.Dm) : 1;
-  const c1=s14(PPA),c2=s23(PCE),c3=s23(PCNE),c4=s14(TOS),c5=s5(d.pOtimo,d.pBom);
+  // ── Converte para número e valida tipo de dado ──────────────────────
+  const nf=+(d.Nf)||0, ni=+(d.Ni)||0, pt=+(d.Pt)||0;
+  const dm=+(d.Dm)||30, ti=+(d.Ti)||0;
+
+  // NCEi/NCEa e NCNEi/NCNEa são CONTAGENS de chamados (números inteiros pequenos).
+  // Se o valor lido for >= 1000, provavelmente é um valor monetário lido na coluna
+  // errada pelo parser (ex: CMM de R$ 409.644,81). Nesse caso, considera como 0.
+  const _ncei  = +(d.NCEi)||0;  const ncei  = _ncei  >= 1000 ? 0 : Math.round(_ncei);
+  const _ncea  = +(d.NCEa)||0;  const ncea  = _ncea  >= 1000 ? 0 : Math.round(_ncea);
+  const _ncnei = +(d.NCNEi)||0; const ncnei = _ncnei >= 1000 ? 0 : Math.round(_ncnei);
+  const _ncnea = +(d.NCNEa)||0; const ncnea = _ncnea >= 1000 ? 0 : Math.round(_ncnea);
+
+  const PPA = pt>0 ? 1-(nf-ni)/pt : 1;
+
+  // SLA2 — Emergência: atendidos == solicitações (inclusive 0==0) → 100% ATENDIDO
+  // Lógica: se não houve chamado algum OU todos foram atendidos → CONFORME
+  const PCE  = (ncei === ncea) ? 1 : ncei>0 ? ncea/ncei : 1;
+
+  // SLA3 — Não Emergencial: mesma regra
+  const PCNE = (ncnei === ncnea) ? 1 : ncnei>0 ? ncnea/ncnei : 1;
+
+  const TOS = dm>0 ? (1440*dm-ti)/(1440*dm) : 1;
+  const c1=s14(PPA),c2=s23(PCE),c3=s23(PCNE),c4=s14(TOS),c5=s5(+(d.pOtimo)||0,+(d.pBom)||0);
   const IE=c1*.4+c2*.2+c3*.2+c4*.1+c5*.1;
-  return{PPA,PCE,PCNE,TOS,c1,c2,c3,c4,c5,IE,CME:d.CMM*d.FM*IE};
+  return{PPA,PCE,PCNE,TOS,c1,c2,c3,c4,c5,IE,CME:(+(d.CMM)||0)*(+(d.FM)||0)*IE,
+         ncei,ncea,ncnei,ncnea,nf,ni,pt};
 }
 const R$=v=>'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const Pct=v=>(v*100).toFixed(2)+'%';const Sc=v=>v.toFixed(2);
@@ -333,7 +348,7 @@ function parseXlsx(ab){
   }
   if(dataStart<0) throw new Error("Não encontrei dados de mês. Formato: jan/26, fev/26... Use o template.");
   const KEYS={mes:['mês','mes'],CMM:['cmm'],FM:['fm','fator'],Nf:['nf','falhas g'],Ni:['ni','interv'],
-    Pt:['pt','disposit'],NCEi:['ncei','emerg. id','emerg id'],NCEa:['ncea','emerg. at','emerg at'],
+    Pt:['pt','disposit'],NCEi:['ncei'],NCEa:['ncea'],
     NCNEi:['ncnei','n.em. id','n.emerg. id','não emerg'],NCNEa:['ncnea','n.em. at','n.emerg. at'],
     Dm:['dm','dias'],Ti:['ti','inoper'],pOtimo:['% ótimo','%ótimo','ótimo','otimo'],
     pBom:['% bom','%bom','bom'],pReg:['% regular','%regular','regular'],pRuim:['% ruim','%ruim','ruim'],
@@ -443,8 +458,11 @@ function render(mes){
   document.getElementById('sp-rg').textContent=d.pReg.toFixed(0)+'%';document.getElementById('sp-ru').textContent=d.pRuim.toFixed(0)+'%';
   document.getElementById('sp-no').textContent='Não opinou: '+d.nOp;
   const tc=v=>v>=1?'tok':v>=.75?'twarn':'tfail';
-  document.getElementById('ostb').innerHTML='<tr><td>Emergência</td><td>'+d.NCEi+'</td><td>'+d.NCEa+'</td><td><span class="tag '+tc(c.PCE)+'">'+Pct(c.PCE)+'</span></td></tr><tr><td>Não Emerg.</td><td>'+d.NCNEi+'</td><td>'+d.NCNEa+'</td><td><span class="tag '+tc(c.PCNE)+'">'+Pct(c.PCNE)+'</span></td></tr><tr><td><strong>Total</strong></td><td><strong>'+(d.NCEi+d.NCNEi)+'</strong></td><td><strong>'+(d.NCEa+d.NCNEa)+'</strong></td><td><span class="tag '+tc((d.NCEa+d.NCNEa)/Math.max(d.NCEi+d.NCNEi,1))+'">'+Pct((d.NCEa+d.NCNEa)/Math.max(d.NCEi+d.NCNEi,1))+'</span></td></tr>';
-  document.getElementById('v-nf').textContent=d.Nf.toLocaleString('pt-BR');document.getElementById('v-ni').textContent=d.Ni.toLocaleString('pt-BR');document.getElementById('v-pt').textContent=d.Pt.toLocaleString('pt-BR');
+  // Usa valores numéricos já convertidos por calc() para evitar tipo string
+  const totalId=c.ncei+c.ncnei, totalAt=c.ncea+c.ncnea;
+  const totalPct=(totalId<=0&&totalAt<=0)?1:totalAt/Math.max(totalId,1);
+  document.getElementById('ostb').innerHTML='<tr><td>Emergência</td><td>'+c.ncei+'</td><td>'+c.ncea+'</td><td><span class="tag '+tc(c.PCE)+'">'+Pct(c.PCE)+'</span></td></tr><tr><td>Não Emerg.</td><td>'+c.ncnei+'</td><td>'+c.ncnea+'</td><td><span class="tag '+tc(c.PCNE)+'">'+Pct(c.PCNE)+'</span></td></tr><tr><td><strong>Total</strong></td><td><strong>'+totalId+'</strong></td><td><strong>'+totalAt+'</strong></td><td><span class="tag '+tc(totalPct)+'">'+Pct(totalPct)+'</span></td></tr>';
+  document.getElementById('v-nf').textContent=c.nf.toLocaleString('pt-BR');document.getElementById('v-ni').textContent=c.ni.toLocaleString('pt-BR');document.getElementById('v-pt').textContent=c.pt.toLocaleString('pt-BR');
   document.getElementById('ft-src').textContent='Mês: '+d.mes+' · '+(ULTIMA_ATU?'Atualizado: '+ULTIMA_ATU:'dados.json');
   document.getElementById('ft-v').textContent='CME='+R$(c.CME)+' · IE='+c.IE.toFixed(3)+' · FM='+d.FM.toFixed(2)+' · CMM='+R$(d.CMM);
   setTimeout(drawEv,60);
