@@ -288,27 +288,32 @@ const cls=v=>v>=1?'ok':v>=.7?'warn':'fail';
 const lbx=v=>v>=1?'CONFORME':v>=.7?'PARCIAL':'FALHA';
 
 // ══ GAUGE DINÂMICO ══
-// O arco do gauge usa stroke-dasharray no path semicircular
-// pathLength total do semicírculo (raio 80, ângulo 180°) = π × 80 ≈ 251.33
+// Semicírculo: raio 80, centro (100,100), vai de (20,100) esquerda a (180,100) direita
+// Arc length = π × 80 ≈ 251.33
 const GAUGE_LEN = 251.33;
 function updateGauge(ie){
-  const arc = document.getElementById('gauge-arc');
+  const v = Math.max(0, Math.min(ie, 1));
+  const arc    = document.getElementById('gauge-arc');
   const needle = document.getElementById('gauge-needle');
   if(!arc||!needle) return;
-  // dash: porção preenchida proporcional ao IE (0→0, 1→251.33)
-  const filled = Math.max(0, Math.min(ie, 1)) * GAUGE_LEN;
-  arc.setAttribute('stroke-dasharray', filled + ' ' + GAUGE_LEN);
-  // agulha: -90° (esq) → 0° (cima) → +90° (dir) conforme IE 0→1
-  // centro do gauge: (100, 100), comprimento da agulha: 72px
-  const angle = -180 + ie * 180; // graus: -180 (esq) a 0 (dir)
-  const rad = angle * Math.PI / 180;
-  const nx = (100 + Math.cos(rad) * 72).toFixed(1);
-  const ny = (100 + Math.sin(rad) * 72).toFixed(1);
+
+  // Arco colorido: preenche da esquerda (IE=0) para direita (IE=1)
+  arc.setAttribute('stroke-dasharray', (v * GAUGE_LEN) + ' ' + GAUGE_LEN);
+
+  // Agulha: ângulo decresce de 180° (IE=0, esquerda) até 0° (IE=1, direita)
+  // Fórmula: angle = (1 - IE) × π  →  IE=0: π (esq), IE=0.5: π/2 (cima), IE=1: 0 (dir)
+  // ny usa MENOS sin porque o eixo Y do SVG é invertido (cresce para baixo)
+  const angle = (1 - v) * Math.PI;
+  const nx = (100 + 72 * Math.cos(angle)).toFixed(1);
+  const ny = (100 - 72 * Math.sin(angle)).toFixed(1);   // ← sinal negativo corrige inversão Y
   needle.setAttribute('x2', nx);
   needle.setAttribute('y2', ny);
-  // cor da agulha
-  needle.setAttribute('stroke', ie>=.9?'#22c55e':ie>=.6?'#f59e0b':'#ef4444');
-  document.getElementById('v-ie').style.color = ie>=.9?'var(--green)':ie>=.6?'var(--amber)':'var(--red)';
+
+  // Cor dinâmica conforme performance
+  const cor = ie >= .9 ? '#22c55e' : ie >= .6 ? '#f59e0b' : '#ef4444';
+  needle.setAttribute('stroke', cor);
+  const vieEl = document.getElementById('v-ie');
+  if(vieEl) vieEl.style.color = ie>=.9?'var(--green)':ie>=.6?'var(--amber)':'var(--red)';
 }
 
 // ══ PARSER EXCEL ══
