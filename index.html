@@ -274,10 +274,14 @@ const s14=p=>p>=.9901?1:p>=.9801?.9:p>=.9701?.8:p>=.9601?.7:0;
 const s23=p=>p>=.9376?1:p>=.8751?.9:p>=.8126?.8:p>=.7501?.7:0;
 const s5=(o,b)=>{const v=(o+b)/100;return v>=.9?1:v>=.7?.9:0};
 function calc(d){
-  const PPA=1-(d.Nf-d.Ni)/d.Pt,
-        PCE=d.NCEi>0?d.NCEa/d.NCEi:1,
-        PCNE=d.NCNEi>0?d.NCNEa/d.NCNEi:1,
-        TOS=(1440*d.Dm-d.Ti)/(1440*d.Dm);
+  const PPA  = d.Pt > 0 ? 1-(d.Nf-d.Ni)/d.Pt : 1;
+  // SLA2 e SLA3: se não houve nenhum chamado (0 identificados E 0 atendidos)
+  // o indicador é considerado ATENDIDO (100%). Só penaliza se houve chamado não atendido.
+  const PCE  = (d.NCEi === 0 && d.NCEa === 0) ? 1
+               : d.NCEi > 0 ? d.NCEa / d.NCEi : 1;
+  const PCNE = (d.NCNEi === 0 && d.NCNEa === 0) ? 1
+               : d.NCNEi > 0 ? d.NCNEa / d.NCNEi : 1;
+  const TOS  = d.Dm > 0 ? (1440*d.Dm-d.Ti)/(1440*d.Dm) : 1;
   const c1=s14(PPA),c2=s23(PCE),c3=s23(PCNE),c4=s14(TOS),c5=s5(d.pOtimo,d.pBom);
   const IE=c1*.4+c2*.2+c3*.2+c4*.1+c5*.1;
   return{PPA,PCE,PCNE,TOS,c1,c2,c3,c4,c5,IE,CME:d.CMM*d.FM*IE};
